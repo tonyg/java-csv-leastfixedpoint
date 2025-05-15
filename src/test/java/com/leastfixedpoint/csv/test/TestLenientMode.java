@@ -1,6 +1,7 @@
 package com.leastfixedpoint.csv.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -90,6 +91,7 @@ public class TestLenientMode {
     public void testStrictOpenAndClose() throws IOException {
         try {
             strictLoad("a,b\"c\"d,e");
+            fail();
         } catch (CsvSyntaxError cse) {
             assertEquals("Illegal opening double-quote position", cse.getMessage());
             assertEquals(0, cse.row);
@@ -101,6 +103,7 @@ public class TestLenientMode {
     public void testStrictOpen() throws IOException {
         try {
             strictLoad("a,b\"cd\",e");
+            fail();
         } catch (CsvSyntaxError cse) {
             assertEquals("Illegal opening double-quote position", cse.getMessage());
             assertEquals(0, cse.row);
@@ -112,6 +115,7 @@ public class TestLenientMode {
     public void testStrictClose1() throws IOException {
         try {
             strictLoad("a,\"bc\"d,e");
+            fail();
         } catch (CsvSyntaxError cse) {
             assertEquals("Illegal closing double-quote position", cse.getMessage());
             assertEquals(0, cse.row);
@@ -122,12 +126,33 @@ public class TestLenientMode {
     @Test
     public void testStrictClose2() throws IOException {
         try {
-            strictLoad("a,\"bc\" ,e");
+            strictLoad("x\ny\nz\na,\"bc\" ,e");
+            fail();
         } catch (CsvSyntaxError cse) {
             assertEquals("Illegal closing double-quote position", cse.getMessage());
-            assertEquals(0, cse.row);
+            assertEquals(3, cse.row);
             assertEquals(1, cse.column);
         }
+    }
+   
+    @Test
+    public void testStrictClose2b() throws IOException {
+        try {
+            strictLoad("x\ny\nz\na,\"bc\" e,e");
+            fail();
+        } catch (CsvSyntaxError cse) {
+            assertEquals("Illegal closing double-quote position", cse.getMessage());
+            assertEquals(3, cse.row);
+            assertEquals(1, cse.column);
+        }
+    }
+
+    @Test
+    public void testLenientClose2b() throws IOException {
+        var rows = lenientLoad("x\ny\nz\na,\"bc\" e,e");
+        assertEquals(4, rows.length);
+        assertEquals(3, rows[3].length);
+        assertEquals("bc e", rows[3][1]);
     }
    
     @Test
