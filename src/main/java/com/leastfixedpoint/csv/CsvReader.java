@@ -56,6 +56,11 @@ public class CsvReader implements Iterable<String[]> {
 
         rowLoop: while (true) {
             final int ch = r.read();
+            if (ch == '\uFEFF') {
+                // Skip BOM.
+                continue;
+            }
+
             if (ch == -1) {
                 if (!lenientQuotes && inQuote) {
                     throw new CsvSyntaxError("Unclosed double-quote", rowNumber, currentRow.size());
